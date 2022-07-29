@@ -1,10 +1,10 @@
-const { Router } = require('express');
+const express = require('express');
 const bcrypt = require('bcryptjs');
 const config = require('config');
 const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const User = require('../models/User');
-const { router } = Router();
+const router  = express.Router();
 
 
 // /api/auth/register
@@ -17,6 +17,7 @@ router.post(
 	],
 	async (req, res) => {
 	    try {
+            console.log('Body: ', req.body);
 		    const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
@@ -36,7 +37,6 @@ router.post(
 
             const hashedPassword = await bcrypt.hash(password, 12);
             const user = new User({email, password: hashedPassword});
-
             await user.save();
 
             res.status(201).json({message: 'Пользователь создан'});
@@ -70,7 +70,7 @@ router.post(
         const user = await User.findOne({ email });
 
         if (!user) {
-        	return res.status.(400).json({ message: 'Пользователь не найден' });
+        	return res.status(400).json({ message: 'Пользователь не найден' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -82,7 +82,7 @@ router.post(
         const token = jwt.sign(
             { userId: user.id },
             config.get('jwtSecret'),
-            {expiresIn: '1h'}
+            {expiresIn: '12h'}
         );
 
         res.json({token, userId: user.id});
